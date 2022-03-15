@@ -3,12 +3,14 @@ from typing import Optional
 
 from src.alerting.alert_utils.email_sending import EmailSender
 from src.alerting.alert_utils.telegram_bot_api import TelegramBotApi
+from src.alerting.alert_utils.slack_bot_api import SlackBotApi
 from src.alerting.alert_utils.twilio_api import TwilioApi
 from src.alerting.channels.channel import ChannelSet
 from src.alerting.channels.console import ConsoleChannel
 from src.alerting.channels.email import EmailChannel
 from src.alerting.channels.log import LogChannel
 from src.alerting.channels.telegram import TelegramChannel
+from src.alerting.channels.slack import SlackChannel
 from src.alerting.channels.twilio import TwilioChannel
 from src.utils.config_parsers.internal import InternalConfig
 from src.utils.config_parsers.internal_parsed import InternalConf
@@ -43,6 +45,16 @@ def _get_telegram_channel(channel_name: str, logger_general: logging.Logger,
         channel_name, logger_general, redis,
         telegram_bot, backup_channels_for_telegram)
     return telegram_channel
+
+def _get_slack_channel(channel_name: str, logger_general: logging.Logger,
+                          redis: Optional[RedisApi],
+                          backup_channels_for_slack: ChannelSet,
+                          user_conf: UserConfig = UserConf) -> SlackChannel:
+    slack_bot = SlackBotApi(user_conf.slack_alerts_webhook)
+    slack_channel = SlackChannel(
+        channel_name, logger_general, redis,
+        slack_bot, backup_channels_for_slack)
+    return slack_channel
 
 
 def _get_email_channel(channel_name: str, logger_general: logging.Logger,
@@ -87,6 +99,7 @@ def get_full_channel_set(channel_name: str, logger_general: logging.Logger,
     # Initialise backup channel sets with default channels
     backup_channels_for_telegram = ChannelSet(channels)
     backup_channels_for_twilio = ChannelSet(channels)
+    backup_channels_for_slack = ChannelSet(channels)
 
     # Add telegram alerts to channel set if they are enabled from config file
     if user_conf.telegram_alerts_enabled:
@@ -96,6 +109,15 @@ def get_full_channel_set(channel_name: str, logger_general: logging.Logger,
         channels.append(telegram_channel)
     else:
         telegram_channel = None
+    
+    # Add slack alerts to channel set if they are enabled from config file
+    if user_conf.slack_alerts_enabled:
+        slack_channel = _get_slack_channel(
+            channel_name, logger_general, redis,
+            backup_channels_for_slack, user_conf)
+        channels.append(slack_channel)
+    else:
+        slack_channel = None
 
     # Add email alerts to channel set if they are enabled from config file
     if user_conf.email_alerts_enabled:
@@ -123,6 +145,10 @@ def get_full_channel_set(channel_name: str, logger_general: logging.Logger,
     # Set up telegram channel as backup channel for twilio
     if telegram_channel is not None:
         backup_channels_for_twilio.add_channel(telegram_channel)
+    
+    # Set up slack channel as backup channel for telegram
+    if slack_channel is not None:
+        backup_channels_for_telegram.add_channel(slack_channel)
 
     return ChannelSet(channels)
 
@@ -144,6 +170,7 @@ def get_periodic_alive_reminder_channel_set(channel_name: str,
 
     # Initialise backup channel sets with default channels
     backup_channels_for_telegram = ChannelSet(channels)
+    backup_channels_for_slack = ChannelSet(channels)
 
     # Add telegram alerts to channel set if they are enabled from config file
     if user_conf.telegram_alerts_enabled and \
@@ -153,6 +180,15 @@ def get_periodic_alive_reminder_channel_set(channel_name: str,
                                                  backup_channels_for_telegram,
                                                  user_conf)
         channels.append(telegram_channel)
+    
+    # Add slack alerts to channel set if they are enabled from config file
+    if user_conf.slack_alerts_enabled and \
+            user_conf.slack_enabled:
+        slack_channel = _get_slack_channel(channel_name, logger_general,
+                                                 redis,
+                                                 backup_channels_for_slack,
+                                                 user_conf)
+        channels.append(slack_channel)
 
     # Add email alerts to channel set if they are enabled from config file
     if user_conf.email_alerts_enabled and \
@@ -163,8 +199,9 @@ def get_periodic_alive_reminder_channel_set(channel_name: str,
     else:
         email_channel = None
 
-    # Set up email channel as backup channel for telegram and twilio
+    # Set up email channel as backup channel for telegram and slack
     if email_channel is not None:
         backup_channels_for_telegram.add_channel(email_channel)
+        backup_channels_for_slack.add_channel(email_channel)
 
     return ChannelSet(channels)

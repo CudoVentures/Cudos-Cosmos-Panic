@@ -2,6 +2,7 @@ from configparser import ConfigParser
 from datetime import timedelta
 
 from src.alerting.alert_utils.telegram_bot_api import TelegramBotApi
+from src.alerting.alert_utils.slack_bot_api import SlackBotApi
 from src.alerting.alert_utils.twilio_api import TwilioApi
 from src.setup.setup_user_config_main_tests import test_telegram_alerts, \
     TestOutcome, test_email_alerts, test_twilio_alerts, \
@@ -103,6 +104,41 @@ def setup_telegram_alerts(cp: ConfigParser) -> None:
     cp['telegram_alerts']['bot_token'] = bot_token
     cp['telegram_alerts']['bot_chat_id'] = bot_chat_id
 
+def setup_slack_alerts(cp: ConfigParser) -> None:
+    print('---- Slack Alerts')
+    print('Alerts sent via Slack are a fast and reliable means of alerting '
+          'that we highly recommend setting up. This requires you to have a '
+          'Slack account, workspace and webhook set up.')
+
+    if is_already_set_up(cp, 'slack_alerts') and \
+            not yn_prompt('Slack alerts are already set up. Do you '
+                          'wish to clear the current config? (Y/n)\n'):
+        return
+
+    reset_section('slack_alerts', cp)
+    cp['slack_alerts']['enabled'] = str(False)
+    cp['slack_alerts']['webhook'] = ''
+
+    if not yn_prompt('Do you wish to set up Slack alerts? (Y/n)\n'):
+        return
+
+    while True:
+        while True:
+            slack_webhook = input('Please insert your Slack webhook:\n')
+            bot_api = SlackBotApi(slack_webhook)
+
+            confirmation = bot_api.test_connection()
+            if not confirmation:
+                print(str("Failed to connect using Slack webhook."))
+            else:
+                print('Successfully connected to Slack bot.')
+                break
+
+        bot_api = SlackBotApi(slack_webhook)
+        break
+
+    cp['slack_alerts']['enabled'] = str(True)
+    cp['slack_alerts']['webhook'] = slack_webhook
 
 def setup_email_alerts(cp: ConfigParser) -> None:
     print('---- Email Alerts')
@@ -237,6 +273,7 @@ def setup_alert_channels(cp: ConfigParser) -> None:
     print('By default, alerts are output to a log file and to '
           'the console. Let\'s set up the rest of the alerts.')
     setup_telegram_alerts(cp)
+    setup_slack_alerts(cp)
     setup_email_alerts(cp)
     setup_twilio_alerts(cp)
 
@@ -361,6 +398,7 @@ def setup_periodic_alive_reminder(cp: ConfigParser) -> None:
     cp['periodic_alive_reminder']['interval_seconds'] = ''
     cp['periodic_alive_reminder']['email_enabled'] = ''
     cp['periodic_alive_reminder']['telegram_enabled'] = ''
+    cp['periodic_alive_reminder']['slack_enabled'] = ''
 
     if not yn_prompt('Do you wish to set up the periodic alive reminder? '
                      '(Y/n)\n'):
@@ -408,10 +446,19 @@ def setup_periodic_alive_reminder(cp: ConfigParser) -> None:
     else:
         telegram_enabled = str(False)
 
+    if is_already_set_up(cp, 'slack_alerts') and \
+            cp['slack_alerts']['enabled'] and \
+            yn_prompt('Would you like the periodic alive reminder '
+                      'to send alerts via Slack? (Y/n)\n'):
+        slack_enabled = str(True)
+    else:
+        slack_enabled = str(False)
+
     cp['periodic_alive_reminder']['enabled'] = str(True)
     cp['periodic_alive_reminder']['interval_seconds'] = interval
     cp['periodic_alive_reminder']['email_enabled'] = email_enabled
     cp['periodic_alive_reminder']['telegram_enabled'] = telegram_enabled
+    cp['periodic_alive_reminder']['slack_enabled'] = slack_enabled
 
 
 def setup_all(cp: ConfigParser) -> None:

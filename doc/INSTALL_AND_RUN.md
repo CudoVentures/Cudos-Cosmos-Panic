@@ -14,6 +14,7 @@ sudo apt-get upgrade
 The only major requirement to run PANIC is Python 3. However, to unlock the full potential of the alerter, we recommend that you install or set up as many of the below requirements as possible:
 - Python v3.5.2+ with pip package manager and pipenv packaging tool.
 - **Optional**: Telegram account and bots, for Telegram alerts and commands.
+- **Optional**: Slack webhook, for Slack alerts.
 - **Optional**: Twilio account, for highly effective phone call alerts.
 - **Optional**: Redis server, to keep a backup of the alerter state and to have some control over the alerter, such as to snooze phone call alerts using Telegram commands.
 
@@ -35,6 +36,7 @@ The only major requirement to run PANIC is Python 3. However, to unlock the full
 ### Optional Features
 
 - **Telegram**: [Click here](INSTALL_TELEGRAM.md) if you want to set up a Telegram account with bots.
+- **Slack**: [Click here](INSTALL_SLACK.md) if you want to set up a Slack webhook.
 - **Twilio**: [Click here](INSTALL_TWILIO.md) if you want to set up a Twilio account.
 - **Redis server**: [Click here](INSTALL_REDIS.md) if you want to set up a Redis server.
 

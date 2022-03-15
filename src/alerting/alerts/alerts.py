@@ -213,6 +213,12 @@ class ProblemWithTelegramBot(Alert):
         super().__init__(
             'Problem encountered with telegram bot: {}'.format(description))
 
+class ProblemWithSlackBot(Alert):
+
+    def __init__(self, description: str) -> None:
+        super().__init__(
+            'Problem encountered with slack bot: {}'.format(description))
+
 
 class AlerterAliveAlert(Alert):
 

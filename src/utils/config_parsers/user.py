@@ -52,6 +52,10 @@ class UserConfig(ConfigParser):
         self.telegram_alerts_bot_token = cp['telegram_alerts']['bot_token']
         self.telegram_alerts_bot_chat_id = cp['telegram_alerts']['bot_chat_id']
 
+        # [slack_alerts]
+        self.slack_alerts_enabled = to_bool(cp['slack_alerts']['enabled'])
+        self.slack_alerts_webhook = cp['slack_alerts']['webhook']
+
         # [email_alerts]
         self.email_alerts_enabled = to_bool(cp['email_alerts']['enabled'])
         self.email_smtp = cp['email_alerts']['smtp']
@@ -92,6 +96,9 @@ class UserConfig(ConfigParser):
             if self.periodic_alive_reminder_enabled else None
         self.telegram_enabled = to_bool(
             cp['periodic_alive_reminder']['telegram_enabled']) \
+            if self.periodic_alive_reminder_enabled else None
+        self.slack_enabled = to_bool(
+            cp['periodic_alive_reminder']['slack_enabled']) \
             if self.periodic_alive_reminder_enabled else None
 
         # ------------------------ Nodes Config
