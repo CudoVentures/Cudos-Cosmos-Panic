@@ -223,7 +223,7 @@ class ProblemWithSlackBot(Alert):
 class AlerterAliveAlert(Alert):
 
     def __init__(self) -> None:
-        super().__init__('Still running.')
+        super().__init__('Monitoring is running.')
 
 
 class NodeInaccessibleDuringStartup(Alert):

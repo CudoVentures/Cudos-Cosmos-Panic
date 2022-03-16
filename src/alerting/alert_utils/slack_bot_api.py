@@ -47,7 +47,7 @@ class SlackBotApi:
 
     def test_connection(self) -> bool:
         data = {
-            "username": "Connection ping from Cosmos Panic",
+            "username": "Connection ping from Cudos-Cosmos-Panic",
             "icon_emoji": ":information_source:",
             "attachments": [
                 {
