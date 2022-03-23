@@ -9,6 +9,7 @@ sudo apt-get update
 sudo apt-get upgrade
 ```
 
+
 ## Requirements
 
 The only major requirement to run PANIC is Python 3. However, to unlock the full potential of the alerter, we recommend that you install or set up as many of the below requirements as possible:
@@ -18,6 +19,12 @@ The only major requirement to run PANIC is Python 3. However, to unlock the full
 - **Optional**: Twilio account, for highly effective phone call alerts.
 - **Optional**: Redis server, to keep a backup of the alerter state and to have some control over the alerter, such as to snooze phone call alerts using Telegram commands.
 
+### Docker
+1. Docker and docker-compose is required
+2. Rename config files without example ( ie example_user_config_main.ini has to to be user_config_main.ini)
+3. Fill your configs
+4. Call ```docker build -t cudos-cosmos-panic .```
+5. Call ```docker run cudos-cosmos-panic```
 ### Python (with pip and pipenv)
 
 1. To install **Python v3.5.2 or greater**, you can [follow this guide](https://realpython.com/installing-python/).
